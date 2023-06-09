@@ -1,0 +1,57 @@
+[
+    {
+        "name": "The Great Gatsby",
+        "author": "F. Scott Fitzgerald",
+        "isbn": "9780743273565"
+    },
+    {
+        "name": "To Kill a Mockingbird",
+        "author": "Harper Lee",
+        "isbn": "9780061120084"
+    },
+    {
+        "name": "Harry Potter and the Philosopher's Stone",
+        "author": "J.K. Rowling",
+        "isbn": "9780747532699"
+    },
+    {
+        "name": "1984",
+        "author": "George Orwell",
+        "isbn": "9780451524935"
+    },
+    {
+        "name": "Pride and Prejudice",
+        "author": "Jane Austen",
+        "isbn": "9780141439518"
+    },
+    {
+        "name": "The Catcher in the Rye",
+        "author": "J.D. Salinger",
+        "isbn": "9780316769488"
+    },
+    {
+        "name": "The Hobbit",
+        "author": "J.R.R. Tolkien",
+        "isbn": "9780618260300"
+    },
+    {
+        "name": "The Lord of the Rings",
+        "author": "J.R.R. Tolkien",
+        "isbn": "9780618640157"
+    },
+    {
+        "name": "The Alchemist",
+        "author": "Paulo Coelho",
+        "isbn": "9780061122415"
+    },
+    {
+        "name": "The Da Vinci Code",
+        "author": "Dan Brown",
+        "isbn": "9780307474278"
+    },
+    {
+        "name": "Moby-Dick",
+        "author": "Herman Melville",
+        "isbn": "9781503280781"
+    }
+]
