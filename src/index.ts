@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import { getData } from "../utils/filesystem";
 //const expressValidator = require('express-validator')
 import * as mysql from "mysql";
-import {Book} from "../models/book"
+import { Book } from "../models/book";
 import { error } from "console";
 const app = express();
 const port = 8000;
@@ -12,12 +12,12 @@ app.use(express.urlencoded({ extended: false }));
 const pool = mysql.createPool({
   host: "localhost",
   user: "root",
-  password: "Root123",
-  database: "db"
+  //password: "Root123",
+  password: "pass123",
+  database: "db",
 });
 
-
-app.get("/books/", async (req: Request, res: Response) => {
+app.get("/books-file/", async (req: Request, res: Response) => {
   let query = req.query.name as string;
 
   try {
@@ -40,7 +40,8 @@ app.get("/books/", async (req: Request, res: Response) => {
 });
 
 app.get("/books/:pageNumber", async (req: Request, res: Response) => {
-  
+  //TODO:: as mohammad said pageNumber & limit
+  console.log("line 42");
   const pageNumber: string = req.params.id;
   let limit = 5;
   //pagenation
@@ -66,85 +67,121 @@ app.get("/books/:pageNumber", async (req: Request, res: Response) => {
   }
 });
 
-app.get("/db-books", (req, res) => {
-  try{
+app.get("/books/", async (req: Request, res: Response) => {
+  console.log("one book");
 
-  pool.query("SELECT * FROM books", (error, results) => {
+  const isbn = req.query.isbn;
+  let query = "SELECT * FROM books WHERE isbn = ?";
+
+  if (!isbn) {
+    console.log("getAllBooks");
+    query = "SELECT * FROM books";
+  }
+  try {
+    const result: mysql.Query = await pool.query(
+      query,
+      [isbn],
+      (error, results) => {
+        if (error) {
+          console.error("Error fetching users from database:", error);
+          res.status(500).json({ error: "Internal Server Error" });
+          return;
+        }
+        const books: Book[] = results;
+        res.json(books);
+      }
+    );
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.post("/books", async (req: Request, res: Response) => {
+  try {
+    const { name, author, isbn } = req.body;
+    //TODO:: if isbn exist dont creat new one
+    if (typeof isbn !== "number") {
+      const responseData = {
+        success: false,
+        message: "Incorrect data type for isbn",
+      };
+      res.json(responseData);
+      return;
+    }
+    const query = "INSERT INTO books (name, author , isbn) VALUES (?, ?, ?)";
+    const result: mysql.Query = await pool.query(
+      query,
+      [name, author, isbn],
+
+      (error, results) => {
+        if (error?.code == "ER_DUP_ENTRY") {
+          console.error("Error fetching users from database:", error);
+          res
+            .status(500)
+            .json({ error: "there is a book exist with the same isbn" });
+          return;
+        } else if (error) {
+          console.error("Error fetching users from database:", error);
+          res.status(500).json({ error: "Internal Server Error" });
+          return;
+        } else {
+          const responseData = {
+            success: true,
+            message: "Book created successfully",
+            record: {
+              name: name,
+              author: author,
+              isbn: isbn,
+            },
+          };
+          res.json(responseData);
+        }
+      }
+    );
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.put("/books", async (req: Request, res: Response) => {
+  const { name, author, isbn } = req.body;
+  const query = "UPDATE books SET name=? ,author=? WHERE isbn =?;";
+
+  await pool.query(query, [name, author, isbn], (error, results) => {
     if (error) {
       console.error("Error fetching users from database:", error);
       res.status(500).json({ error: "Internal Server Error" });
       return;
     }
-
-    const books: Book[] = results;
     // Process the fetched users as needed
-    res.json(books);
-  });}
-  catch(e){
-    console.log(e)
-  }
+    console.log(results.affectedRows);
+    if (results.affectedRows) {
+      res.json("The book is updated!");
+    } else {
+      res.json("The book was not found!");
+    }
+  });
 });
 
-app.get('/db-books/:id', async (req: Request, res: Response,) => {
-  const isbn: string = req.params.id;
-  try{
-    const query = 'SELECT * FROM books WHERE isbn = ?';
-    const result: mysql.Query = await pool.query(query, [isbn],(error, results) => {
-
-      if (error) {
-        console.error("Error fetching users from database:", error);
-        res.status(500).json({ error: "Internal Server Error" });
-        return;
-      }
-      const books: Book[] = results;
-      res.json(books);
-    });
-  }
-  catch(error){
-    console.log(error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
+app.delete("/books", async (req: Request, res: Response) => {
+  const isbn = req.query.isbn;
+  const query = "DELETE FROM books WHERE isbn =?;";
+  await pool.query(query, [isbn], (error, results) => {
+    if (error) {
+      console.error("Error fetching users from database:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+    // Process the fetched users as needed
+    if (results.affectedRows) {
+      res.json("The book is deleted!");
+    } else {
+      res.json("The book was not found!");
+    }
+  });
 });
-
-app.post('/books', async (req: Request, res: Response) => {
-  //TODO:: if isbn exist dont creat new one
-  console.log("---------------------")
-  console.log(req.body)
-  try{
-    const { name, author, isbn } = req.body;
-    const query = 'INSERT INTO books (name, author , isbn) VALUES (?, ?, ?)';
-    const result: mysql.Query = await pool.query(query, [name, author, isbn],(error, results) => {
-      if (error) {
-        console.error("Error fetching users from database:", error);
-        res.status(500).json({ error: "Internal Server Error" });
-        return;
-      }
-      else{
-        console.log("*-*-*-*-*-*-")
-        console.log(results)
-        const responseData = {
-          success : true,
-          message : "Book created successfully",
-          record :{
-             name: name,
-             author: author,
-             isbn: isbn
-          }
-         }
-         res.json(responseData);
-
-      }
-
-    });
-
-  }
-  catch(error){
-    console.log(error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
