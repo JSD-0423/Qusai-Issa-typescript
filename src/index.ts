@@ -39,48 +39,37 @@ app.get("/books-file/", async (req: Request, res: Response) => {
   }
 });
 
-app.get("/books/:pageNumber", async (req: Request, res: Response) => {
-  //TODO:: as mohammad said pageNumber & limit
-  console.log("line 42");
-  const pageNumber: string = req.params.id;
-  let limit = 5;
-  //pagenation
-
-  let query = req.query.name as string;
-
-  try {
-    const books = await getData();
-
-    if (!query) {
-      res.json(books);
-      res.end();
-    } else {
-      const filteredBooks = books.filter((book: any) =>
-        book.name.toLowerCase().startsWith(query.toLowerCase())
-      );
-
-      res.json(filteredBooks);
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal Server Error");
-  }
-});
-
 app.get("/books/", async (req: Request, res: Response) => {
-  console.log("one book");
-
+  let limit = 5;
+  let offset = 0;
   const isbn = req.query.isbn;
+  //check if we have a limit default 5
+  if (req.query.limit) {
+    limit = +req.query.limit;
+  }
+  //check if we have a page number default 1
+  if (req.query.pageNumber) {
+    offset = (+req.query.pageNumber - 1) * limit;
+  }
+  //validate limit and offset value
+
+  if (limit < 1 || offset < 0) {
+    res.status(400).json({
+      error: "not acceptabil value for limit or page number",
+      hint: "minimum value for limit and page number are 1 and 0 respectively",
+    });
+    return;
+  }
+
   let query = "SELECT * FROM books WHERE isbn = ?";
 
   if (!isbn) {
-    console.log("getAllBooks");
-    query = "SELECT * FROM books";
+    query = "SELECT * FROM books limit ? OFFSET " + offset;
   }
   try {
     const result: mysql.Query = await pool.query(
       query,
-      [isbn],
+      [isbn || limit],
       (error, results) => {
         if (error) {
           console.error("Error fetching users from database:", error);
@@ -88,7 +77,11 @@ app.get("/books/", async (req: Request, res: Response) => {
           return;
         }
         const books: Book[] = results;
-        res.json(books);
+        if (books.length == 0) {
+          res.status(404).json("The book was not found!");
+        } else {
+          res.json(books);
+        }
       }
     );
   } catch (error) {
@@ -101,12 +94,9 @@ app.post("/books", async (req: Request, res: Response) => {
   try {
     const { name, author, isbn } = req.body;
     //TODO:: if isbn exist dont creat new one
+
     if (typeof isbn !== "number") {
-      const responseData = {
-        success: false,
-        message: "Incorrect data type for isbn",
-      };
-      res.json(responseData);
+      res.status(400).json({ error: "not acceptabil value for isbn" });
       return;
     }
     const query = "INSERT INTO books (name, author , isbn) VALUES (?, ?, ?)";
@@ -156,11 +146,10 @@ app.put("/books", async (req: Request, res: Response) => {
       return;
     }
     // Process the fetched users as needed
-    console.log(results.affectedRows);
     if (results.affectedRows) {
       res.json("The book is updated!");
     } else {
-      res.json("The book was not found!");
+      res.status(404).json("The book was not found!");
     }
   });
 });
