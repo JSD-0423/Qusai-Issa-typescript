@@ -12,6 +12,7 @@ app.use(express.urlencoded({ extended: false }));
 const pool = mysql.createPool({
   host: "localhost",
   user: "root",
+  
   //password: "Root123",
   password: "pass123",
   database: "db",
