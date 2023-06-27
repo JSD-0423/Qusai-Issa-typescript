@@ -3,12 +3,26 @@ import { getData } from "../utils/filesystem";
 //const expressValidator = require('express-validator')
 import * as mysql from "mysql";
 import { Book } from "../models/book";
+import { User } from "../models/user";
 import { error } from "console";
+//import {passport} from "../utils/passport";
+const passport = require('../utils/passport');
 const app = express();
 const port = 8000;
 //app.use(expressValidator());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(passport);
+
+// Initialize Passport.js
+app.use(passport.initialize());
+
+app.get('/rent', passport.authenticate(), (req, res) => {
+  let user : User = {user_id:1,name : "232"};
+  //const userId = req;
+  const userId = req;
+  res.send('Rent request set up successfully');
+});
 const pool = mysql.createPool({
   host: "localhost",
   user: "root",

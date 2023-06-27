@@ -1,0 +1,15 @@
+const jwt = require('jsonwebtoken');
+const { jwtSecret, jwtOptions } = require('../config/config');
+
+const generateToken = (userId) => {
+  const payload = { userId };
+  const token = jwt.sign(payload, jwtSecret, jwtOptions);
+  return token;
+};
+
+// Example usage when a user logs in
+const user = { id: 123 }; // User object with the ID
+const token = generateToken(user.id);
+
+// Return the token to the client (e.g., as a response to login/signup API)
+res.json({ token });
