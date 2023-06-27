@@ -20,9 +20,6 @@
   "dependencies": {
     "express": "^4.18.2",
     "express-validator": "^7.0.1",
-    "jsonwebtoken": "^9.0.0",
-    "passport": "^0.6.0",
-    "passport-jwt": "^4.0.1",
     "ts-node": "^10.9.1"
   },
   "devDependencies": {
@@ -38,4 +35,3 @@
   "keywords": [],
   "description": ""
 }
-
