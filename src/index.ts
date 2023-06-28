@@ -93,12 +93,12 @@ app.get("/books/", async (req: Request, res: Response) => {
 app.post("/books", async (req: Request, res: Response) => {
   try {
     const { name, author, isbn } = req.body;
-    //TODO:: if isbn exist dont creat new one
-
     if (typeof isbn !== "number") {
       res.status(400).json({ error: "not acceptabil value for isbn" });
       return;
     }
+
+    //TODO:: check if exists call the orevios method
     const query = "INSERT INTO books (name, author , isbn) VALUES (?, ?, ?)";
     const result: mysql.Query = await pool.query(
       query,
@@ -138,6 +138,7 @@ app.post("/books", async (req: Request, res: Response) => {
 app.put("/books", async (req: Request, res: Response) => {
   const { name, author, isbn } = req.body;
   const query = "UPDATE books SET name=? ,author=? WHERE isbn =?;";
+  // TODO:: install joi and implement it for every thing
 
   await pool.query(query, [name, author, isbn], (error, results) => {
     if (error) {
@@ -147,7 +148,16 @@ app.put("/books", async (req: Request, res: Response) => {
     }
     // Process the fetched users as needed
     if (results.affectedRows) {
-      res.json("The book is updated!");
+      const responseData = {
+        success: true,
+        message: "Book Updated successfully",
+        record: {
+          name: name,
+          author: author,
+          isbn: isbn,
+        },
+      };
+      res.json(responseData);
     } else {
       res.status(404).json("The book was not found!");
     }
@@ -163,7 +173,7 @@ app.delete("/books", async (req: Request, res: Response) => {
       res.status(500).json({ error: "Internal Server Error" });
       return;
     }
-    // Process the fetched users as needed
+    //Process the fetched users as needed
     if (results.affectedRows) {
       res.json("The book is deleted!");
     } else {
